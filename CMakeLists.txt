@@ -1,0 +1,27 @@
+cmake_minimum_required(VERSION 3.20)
+project(BankingSystem LANGUAGES CXX)
+
+set(CMAKE_CXX_STANDARD 14)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
+set(CMAKE_CXX_EXTENSIONS OFF)
+
+add_library(banking banking.cpp)
+target_include_directories(banking PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}")
+if(MSVC)
+    target_compile_options(banking PUBLIC /W4 /permissive-)
+else()
+    target_compile_options(banking PUBLIC -Wall -Wextra -Wpedantic)
+endif()
+
+foreach(application customer_manager transaction_generator transaction_analyst)
+    add_executable(${application} ${application}.cpp)
+    target_link_libraries(${application} PRIVATE banking)
+endforeach()
+
+include(CTest)
+if(BUILD_TESTING)
+    add_executable(banking_tests tests/banking_tests.cpp)
+    target_link_libraries(banking_tests PRIVATE banking)
+    file(MAKE_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}/test-data")
+    add_test(NAME banking_tests COMMAND banking_tests "${CMAKE_CURRENT_BINARY_DIR}/test-data")
+endif()
